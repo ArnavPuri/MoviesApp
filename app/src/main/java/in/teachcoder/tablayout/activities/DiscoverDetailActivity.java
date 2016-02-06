@@ -21,7 +21,8 @@ public class DiscoverDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_search_detail);
 
         int position = getIntent().getExtras().getInt("clicked_item");
-        Movie movie = FragmentTwo.discoverMovies.get(position);
+        Movie movie = (Movie) FragmentTwo.moviesListView.getAdapter().getItem(position);
+//                FragmentTwo.discoverMovies.get(position);
 
         TextView movieTitle = (TextView) findViewById(R.id.movie_title);
         ImageView moviePoster = (ImageView) findViewById(R.id.detail_movie_poster);

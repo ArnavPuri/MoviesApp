@@ -10,16 +10,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
 import in.teachcoder.tablayout.FetchSearchResults;
 import in.teachcoder.tablayout.R;
 import in.teachcoder.tablayout.activities.DiscoverDetailActivity;
 import in.teachcoder.tablayout.adapter.MyListAdapter;
-import in.teachcoder.tablayout.adapter.MyRecyclerAdapter;
 import in.teachcoder.tablayout.model.Movie;
 
 
@@ -28,11 +27,13 @@ import in.teachcoder.tablayout.model.Movie;
  */
 public class FragmentTwo extends Fragment {
 
-    private ListView moviesListView;
+
+    
+    public static ListView moviesListView;
     MyListAdapter listAdapter;
     public static ArrayList<Movie> discoverMovies = new ArrayList<>();
-    TextView emptyMessage;
-    MyRecyclerAdapter newAdapter;
+    ProgressBar bar;
+    View root2;
 
     public FragmentTwo() {
         // Required empty public constructor
@@ -43,10 +44,10 @@ public class FragmentTwo extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View root2 = inflater.inflate(R.layout.fragment_two, container, false);
+        root2 = inflater.inflate(R.layout.fragment_two, container, false);
         FloatingActionButton refreshFAB = (FloatingActionButton) getActivity()
                 .findViewById(R.id.fab);
-
+        bar = (ProgressBar) root2.findViewById(R.id.bar);
         moviesListView = (ListView) root2.findViewById(R.id.discover_movie_list);
         refreshFAB.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,6 +64,14 @@ public class FragmentTwo extends Fragment {
                 startActivity(i);
             }
         });
+        moviesListView.setLongClickable(true);
+        moviesListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(getActivity(), moviesListView.getAdapter().getItem(position).toString(), Toast.LENGTH_SHORT).show();
+                return true;
+            }
+        });
         return root2;
     }
 
@@ -73,14 +82,9 @@ public class FragmentTwo extends Fragment {
     }
 
     public void populateMovies() {
-        if (discoverMovies.isEmpty()) {
-            try {
-                discoverMovies = new FetchSearchResults(getActivity()).execute(new String[]{"", "discover"}).get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-        listAdapter = new MyListAdapter(getActivity(), discoverMovies);
-        moviesListView.setAdapter(listAdapter);
+        new FetchSearchResults(getActivity(), bar, moviesListView).execute("", "discover");
+//        discoverMovies = FetchSearchResults.sendDiscoverMovieResults;
+//        listAdapter = FetchSearchResults.searchAdapter;
+//        moviesListView.setAdapter(listAdapter);
     }
 }

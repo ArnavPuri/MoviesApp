@@ -1,10 +1,12 @@
 package in.teachcoder.tablayout;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.view.View;
+import android.widget.ListView;
+import android.widget.ProgressBar;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -18,6 +20,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import in.teachcoder.tablayout.adapter.MyListAdapter;
 import in.teachcoder.tablayout.model.Movie;
 
 /**
@@ -27,23 +30,32 @@ import in.teachcoder.tablayout.model.Movie;
 
 public class FetchSearchResults extends AsyncTask<String, Void, ArrayList<Movie>> {
     Context context;
-    ProgressDialog dialog;
+    private ProgressBar progressBar;
+    private ListView listView;
     public ArrayList<Movie> movieResults = new ArrayList<>();
-    Uri buildUri;
+    public MyListAdapter searchAdapter;
 
-    public FetchSearchResults(Context c) {
+    Uri buildUri;
+    public Boolean isDiscover = true;
+
+    public FetchSearchResults(Context c, ProgressBar bar, ListView lv) {
         super();
         context = c;
+        listView = lv;
+        progressBar = bar;
     }
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        if (!movieResults.isEmpty())
+        if (listView != null) {
+            listView = null;
+        }
+        if (!movieResults.isEmpty()) {
             movieResults.clear();
-        dialog = new ProgressDialog(context,R.style.AppTheme);
-        dialog.setTitle("Searching...");
-        dialog.show();
+        }
+        progressBar.setVisibility(View.VISIBLE);
+
 
     }
 
@@ -52,7 +64,9 @@ public class FetchSearchResults extends AsyncTask<String, Void, ArrayList<Movie>
         if (params.length == 0) {
             return null;
         }
-
+//        if (!Helper.hasActiveInternetConnection(context)) {
+//            return null;
+//        }
         HttpURLConnection client = null;
         BufferedReader bufferedReader = null;
         String searchJSONstr = null;
@@ -72,6 +86,7 @@ public class FetchSearchResults extends AsyncTask<String, Void, ArrayList<Movie>
             switch (searchPreference) {
 
                 case "search":
+                    isDiscover = false;
                     buildUri = Uri.parse(SEARCH_BASE_URL).buildUpon()
                             .appendPath(SEARCH_QUERY_PARAM)
                             .appendPath(MOVIE_SEGMENT)
@@ -81,6 +96,7 @@ public class FetchSearchResults extends AsyncTask<String, Void, ArrayList<Movie>
                     break;
 
                 case "discover":
+                    isDiscover = true;
                     buildUri = Uri.parse(SEARCH_BASE_URL).buildUpon()
                             .appendPath(DISCOVER_QUERY_PARAM)
                             .appendPath(MOVIE_SEGMENT)
@@ -89,6 +105,7 @@ public class FetchSearchResults extends AsyncTask<String, Void, ArrayList<Movie>
                     break;
 
                 default:
+                    isDiscover = false;
                     buildUri = Uri.parse(SEARCH_BASE_URL).buildUpon()
                             .appendPath(SEARCH_QUERY_PARAM)
                             .appendPath(MOVIE_SEGMENT)
@@ -162,7 +179,7 @@ public class FetchSearchResults extends AsyncTask<String, Void, ArrayList<Movie>
             String posterUrl = movieResult.getString(MOVIE_POSTER_URL);
             String year = movieResult.getString(MOVIE_YEAR);
             String plot = movieResult.getString(MOVIE_PLOT);
-            movieResults.add(new Movie(title, year, "https://image.tmdb.org/t/p/original" + posterUrl,plot));
+            movieResults.add(new Movie(title, year, "https://image.tmdb.org/t/p/original" + posterUrl, plot));
         }
 
         return movieResults;
@@ -170,8 +187,19 @@ public class FetchSearchResults extends AsyncTask<String, Void, ArrayList<Movie>
 
     @Override
     protected void onPostExecute(ArrayList<Movie> movies) {
-        dialog.dismiss();
         super.onPostExecute(movies);
 
+        if (movies != null) {
+            if (isDiscover) {
+                searchAdapter = new MyListAdapter(context, movies);
+                listView.setAdapter(searchAdapter);
+            } else {
+                searchAdapter = new MyListAdapter(context, movies);
+                listView.setAdapter(searchAdapter);
+            }
+        }
+        progressBar.setVisibility(View.GONE);
+
     }
+
 }

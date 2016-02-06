@@ -14,7 +14,6 @@ import java.util.ArrayList;
 
 import in.teachcoder.tablayout.R;
 import in.teachcoder.tablayout.model.Movie;
-import in.teachcoder.tablayout.utils.ImageLoader;
 
 /**
  * Created by Arnav on 2/4/2016.
@@ -22,12 +21,8 @@ import in.teachcoder.tablayout.utils.ImageLoader;
 public class MyListAdapter extends ArrayAdapter<Movie> {
 
     private Context context;
-    private ArrayList<Movie> movies;
-    ImageLoader imageLoader = new ImageLoader(context);
+    private ArrayList<Movie> movies = new ArrayList<>();
 
-
-    private LayoutInflater mInflater;
-    private boolean mNotifyOnChange = true;
 
     public MyListAdapter(Context context, ArrayList<Movie> mMovies) {
         super(context, R.layout.movie_item);
@@ -37,7 +32,9 @@ public class MyListAdapter extends ArrayAdapter<Movie> {
 
     @Override
     public int getCount() {
-        return movies.size();
+        if (movies == null) {
+            return 0;
+        } else return movies.size();
     }
 
     @Override
@@ -70,7 +67,7 @@ public class MyListAdapter extends ArrayAdapter<Movie> {
             holder.year = (TextView) convertView.findViewById(R.id.movie_year);
             holder.overview = (TextView) convertView.findViewById(R.id.movie_overview);
             convertView.setTag(holder);
-        }else holder = (ViewHolder) convertView.getTag();
+        } else holder = (ViewHolder) convertView.getTag();
 
         Movie movie = movies.get(position);
         holder.title.setText(movie.getTitle());
